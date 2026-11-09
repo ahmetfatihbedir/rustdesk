@@ -1,8 +1,7 @@
 """Fatih Destek: sunucu adresi, anahtar ve uygulama adini derleme oncesi isler.
 
-GitHub deposunda iki secret gerekir:
-  FATIH_SERVER  -> sunucu IP adresi veya alan adi
-  FATIH_KEY     -> sunucudaki id_ed25519.pub icerigi
+Sunucu adresi fatih/sunucu.txt, acik anahtar fatih/anahtar.txt dosyasindan okunur.
+FATIH_SERVER / FATIH_KEY ortam degiskenleri (GitHub secret) varsa onlar onceliklidir.
 """
 import os
 import pathlib
@@ -10,10 +9,18 @@ import sys
 
 APP_NAME = "FatihDestek"
 
-server = os.environ.get("FATIH_SERVER", "").strip()
-key = os.environ.get("FATIH_KEY", "").strip()
-if not server or not key:
-    sys.exit("HATA: FATIH_SERVER ve FATIH_KEY secret'lari tanimli degil.")
+def ayar(env, dosya):
+    deger = os.environ.get(env, "").strip()
+    if not deger:
+        f = pathlib.Path("fatih") / dosya
+        deger = f.read_text(encoding="utf-8").strip() if f.exists() else ""
+    if not deger:
+        sys.exit(f"HATA: {env} / fatih/{dosya} bos.")
+    return deger
+
+
+server = ayar("FATIH_SERVER", "sunucu.txt")
+key = ayar("FATIH_KEY", "anahtar.txt")
 
 path = pathlib.Path("libs/hbb_common/src/config.rs")
 src = path.read_text(encoding="utf-8")
